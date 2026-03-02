@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오늘의 운세</title>
+    <title>오늘의 운세 & 궁합</title>
     <style>
         * {
             box-sizing: border-box;
@@ -43,12 +43,62 @@
         .subtitle {
             text-align: center;
             color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 35px;
+            margin-bottom: 30px;
             font-size: 0.95rem;
         }
 
+        /* 탭 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-color: transparent;
+            color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.85);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 패널 */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+        }
+
+        .form-group.two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
         label {
@@ -81,7 +131,17 @@
             cursor: pointer;
         }
 
-        button {
+        .vs-divider {
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 14px;
+            justify-content: center;
+            color: #ffd700;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        button[type="submit"] {
             width: 100%;
             padding: 15px;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
@@ -92,19 +152,20 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 5px;
         }
 
-        button:hover:not(:disabled) {
+        button[type="submit"]:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
         }
 
-        button:disabled {
+        button[type="submit"]:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
 
-        #result-section {
+        .result-section {
             margin-top: 35px;
             display: none;
         }
@@ -117,7 +178,7 @@
             border-bottom: 1px solid rgba(255, 215, 0, 0.3);
         }
 
-        #fortune-text {
+        .result-text {
             color: rgba(255, 255, 255, 0.9);
             line-height: 1.8;
             white-space: pre-wrap;
@@ -157,64 +218,91 @@
 <body>
     <div class="container">
         <div class="stars">✨ ⭐ ✨</div>
-        <h1>오늘의 운세</h1>
-        <p class="subtitle">생년월일을 입력하면 AI가 오늘의 운세를 알려드립니다</p>
+        <h1>운세 & 궁합</h1>
+        <p class="subtitle">AI가 사주와 음양오행으로 분석해드립니다</p>
 
-        <form id="fortune-form">
-            <div class="form-group">
-                <label for="birth_date">생년월일</label>
-                <input type="date" id="birth_date" name="birth_date" required
-                       max="2010-12-31" min="1900-01-01">
+        <!-- 탭 버튼 -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('fortune')">🔮 오늘의 운세</button>
+            <button class="tab-btn" onclick="switchTab('goonghap')">💑 궁합 보기</button>
+        </div>
+
+        <!-- 운세 패널 -->
+        <div id="panel-fortune" class="tab-panel active">
+            <form id="fortune-form">
+                <div class="form-group">
+                    <label for="birth_date">생년월일</label>
+                    <input type="date" id="birth_date" name="birth_date" required
+                           max="2010-12-31" min="1900-01-01">
+                </div>
+                <button type="submit" id="fortune-btn">🔮 운세 보기</button>
+            </form>
+
+            <div id="fortune-result" class="result-section">
+                <div class="result-title">📜 나의 오늘 운세</div>
+                <div id="fortune-text" class="result-text">
+                    <div class="loading" id="fortune-loading">
+                        <div class="spinner"></div>
+                        <span>운세를 분석하고 있습니다...</span>
+                    </div>
+                </div>
             </div>
-            <button type="submit" id="submit-btn">🔮 운세 보기</button>
-        </form>
+        </div>
 
-        <div id="result-section">
-            <div class="result-title">📜 나의 오늘 운세</div>
-            <div id="fortune-text">
-                <div class="loading" id="loading-indicator">
-                    <div class="spinner"></div>
-                    <span>운세를 분석하고 있습니다...</span>
+        <!-- 궁합 패널 -->
+        <div id="panel-goonghap" class="tab-panel">
+            <form id="goonghap-form">
+                <div class="form-group two-col">
+                    <div>
+                        <label for="birth_date1">첫 번째 사람</label>
+                        <input type="date" id="birth_date1" name="birth_date1" required
+                               max="2010-12-31" min="1900-01-01">
+                    </div>
+                    <div class="vs-divider">💕</div>
+                    <div>
+                        <label for="birth_date2">두 번째 사람</label>
+                        <input type="date" id="birth_date2" name="birth_date2" required
+                               max="2010-12-31" min="1900-01-01">
+                    </div>
+                </div>
+                <button type="submit" id="goonghap-btn">💑 궁합 보기</button>
+            </form>
+
+            <div id="goonghap-result" class="result-section">
+                <div class="result-title">💘 두 사람의 궁합</div>
+                <div id="goonghap-text" class="result-text">
+                    <div class="loading" id="goonghap-loading">
+                        <div class="spinner"></div>
+                        <span>궁합을 분석하고 있습니다...</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById('fortune-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const resultSection = document.getElementById('result-section');
-        const fortuneText = document.getElementById('fortune-text');
-        const loadingIndicator = document.getElementById('loading-indicator');
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', (tab === 'fortune' && i === 0) || (tab === 'goonghap' && i === 1));
+            });
+            document.getElementById('panel-fortune').classList.toggle('active', tab === 'fortune');
+            document.getElementById('panel-goonghap').classList.toggle('active', tab === 'goonghap');
+        }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const birthDate = document.getElementById('birth_date').value;
-            if (!birthDate) return;
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = '🔮 분석 중...';
+        async function streamResult(url, formData, resultSection, resultText, loadingEl, btn, originalLabel) {
+            btn.disabled = true;
+            btn.textContent = '⏳ 분석 중...';
             resultSection.style.display = 'block';
-            fortuneText.innerHTML = '';
-            fortuneText.appendChild(loadingIndicator);
-            loadingIndicator.style.display = 'flex';
+            resultText.innerHTML = '';
+            resultText.appendChild(loadingEl);
+            loadingEl.style.display = 'flex';
 
-            let resultText = '';
+            let text = '';
             let loadingRemoved = false;
 
-            const formData = new FormData();
-            formData.append('birth_date', birthDate);
-
             try {
-                const response = await fetch('/fortune', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error('서버 오류가 발생했습니다.');
-                }
+                const response = await fetch(url, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('서버 오류가 발생했습니다.');
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -223,30 +311,62 @@
                     const { done, value } = await reader.read();
                     if (done) break;
 
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n');
-
+                    const lines = decoder.decode(value, { stream: true }).split('\n');
                     for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.slice(6);
-                            if (data === '[DONE]') continue;
+                        if (!line.startsWith('data: ')) continue;
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
 
-                            if (!loadingRemoved) {
-                                loadingIndicator.style.display = 'none';
-                                loadingRemoved = true;
-                            }
-
-                            resultText += data;
-                            fortuneText.textContent = resultText;
+                        if (!loadingRemoved) {
+                            loadingEl.style.display = 'none';
+                            loadingRemoved = true;
                         }
+                        text += data;
+                        resultText.textContent = text;
                     }
                 }
-            } catch (error) {
-                fortuneText.textContent = '오류가 발생했습니다: ' + error.message;
+            } catch (err) {
+                resultText.textContent = '오류가 발생했습니다: ' + err.message;
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '🔮 운세 보기';
+                btn.disabled = false;
+                btn.textContent = originalLabel;
             }
+        }
+
+        // 운세 폼
+        document.getElementById('fortune-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const birthDate = document.getElementById('birth_date').value;
+            if (!birthDate) return;
+            const fd = new FormData();
+            fd.append('birth_date', birthDate);
+            streamResult(
+                '/fortune', fd,
+                document.getElementById('fortune-result'),
+                document.getElementById('fortune-text'),
+                document.getElementById('fortune-loading'),
+                document.getElementById('fortune-btn'),
+                '🔮 운세 보기'
+            );
+        });
+
+        // 궁합 폼
+        document.getElementById('goonghap-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const d1 = document.getElementById('birth_date1').value;
+            const d2 = document.getElementById('birth_date2').value;
+            if (!d1 || !d2) return;
+            const fd = new FormData();
+            fd.append('birth_date1', d1);
+            fd.append('birth_date2', d2);
+            streamResult(
+                '/goonghap', fd,
+                document.getElementById('goonghap-result'),
+                document.getElementById('goonghap-text'),
+                document.getElementById('goonghap-loading'),
+                document.getElementById('goonghap-btn'),
+                '💑 궁합 보기'
+            );
         });
     </script>
 </body>
