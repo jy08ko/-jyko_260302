@@ -17,6 +17,9 @@ model = genai.GenerativeModel(
         "jyko 테스트1"
         "jyko2 테스트1"
         "aaa freshman 테스트1"        
+        "jyko test1"
+        "고재연  test1"
+
 
     ),
 )
